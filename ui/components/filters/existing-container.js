@@ -35,7 +35,7 @@ RemoveLinkContainer.contextTypes = {
   }),
 };
 
-export function ExistingFiltersContainer({ fieldNames, policies, topics }) {
+export function ExistingFiltersContainer({ agencies, fieldNames, policies, topics }) {
   const topicIds = topics.map(topic => topic.id);
   const topicFilters = topics.map(topic => React.createElement(
     RemoveLinkContainer, {
@@ -58,18 +58,34 @@ export function ExistingFiltersContainer({ fieldNames, policies, topics }) {
       name: policy.title,
     }));
 
-  return React.createElement(
-    'ol', { className: 'list-reset' }, [].concat(topicFilters, policyFilters));
+  const agencyIds = agencies.map(agency => agency.id);
+  const agencyFilters = agencies.map(agency => React.createElement(
+    RemoveLinkContainer, {
+      existing: agencyIds,
+      field: fieldNames.agencies,
+      heading: 'Agency',
+      idToRemove: agency.id,
+      key: agency.id,
+      name: agency.name,
+    }));
+
+  const filters = [].concat(topicFilters, policyFilters, agencyFilters);
+
+  return React.createElement('ol', { className: 'list-reset' }, filters);
 }
 ExistingFiltersContainer.propTypes = {
-  policies: React.PropTypes.arrayOf(React.PropTypes.shape({
+  agencies: React.PropTypes.arrayOf(React.PropTypes.shape({
     id: React.PropTypes.number,
-    title: React.PropTypes.string,
+    name: React.PropTypes.string,
   })).isRequired,
   fieldNames: React.PropTypes.shape({
     policies: React.PropTypes.string,
     topics: React.PropTypes.string,
   }).isRequired,
+  policies: React.PropTypes.arrayOf(React.PropTypes.shape({
+    id: React.PropTypes.number,
+    title: React.PropTypes.string,
+  })).isRequired,
   topics: React.PropTypes.arrayOf(React.PropTypes.shape({
     id: React.PropTypes.number,
     name: React.PropTypes.string,
@@ -83,8 +99,12 @@ function fetchTopics({ query, fieldNames }) {
 function fetchPolicies({ query, fieldNames }) {
   return api.policies.withIds(query[fieldNames.policies]);
 }
+function fetchAgencies({ query, fieldNames }) {
+  return api.agencies.withIds(query[fieldNames.agencies]);
+}
 
 export default resolve({
+  agencies: fetchAgencies,
   policies: fetchPolicies,
   topics: fetchTopics,
 })(ExistingFiltersContainer);
